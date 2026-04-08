@@ -1,0 +1,25 @@
+name: C Quality Control (Lint & Test)
+on: [push, pull_request]
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc cmake cppcheck
+
+      - name: Run Static Analysis (Linting)
+        # Cppcheck sẽ soi các lỗi như tràn bộ nhớ, biến chưa khởi tạo
+        run: cppcheck --enable=all --error-exitcode=1 src/ tests/
+
+      - name: Configure and Build
+        run: |
+          cmake -S . -B build
+          cmake --build build
+
+      - name: Execute Unit Tests
+        run: cd build && ctest --output-on-failure
